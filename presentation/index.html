@@ -25,7 +25,9 @@
         <a href="#problem">Problem</a>
         <a href="#architecture">Architecture</a>
         <a href="#triggers">Triggers</a>
+        <a href="#simulator">Simulator</a>
         <a href="#contract">Contract</a>
+        <a href="#capital">Capital</a>
         <a href="#asset">Asset</a>
         <a href="#valuation">Viability</a>
       </nav>
@@ -144,17 +146,6 @@
             </div>
           </article>
           <article class="trigger-card">
-            <span class="tag">Idea 5 · Trigger A</span>
-            <h3>Container roll-overs</h3>
-            <p>
-              Carrier and terminal APIs verify whether the insured container missed the scheduled
-              vessel and was reassigned to a later sailing.
-            </p>
-            <div class="mini-flow">
-              <span>Carrier API</span><span>Not loaded</span><span>Triggered</span><span>Micro-payout</span>
-            </div>
-          </article>
-          <article class="trigger-card">
             <span class="tag">Idea 2 · Back end</span>
             <h3>DeFi risk pool</h3>
             <p>
@@ -165,32 +156,142 @@
               <span>LP deposit</span><span>Reserve</span><span>Premium yield</span><span>Claim loss</span>
             </div>
           </article>
+          <article class="trigger-card">
+            <span class="tag">Idea 5 · Trigger A</span>
+            <h3>Container roll-overs</h3>
+            <p>
+              Carrier and terminal APIs verify whether the insured container missed the scheduled
+              vessel and was reassigned to a later sailing.
+            </p>
+            <div class="mini-flow">
+              <span>Carrier API</span><span>Not loaded</span><span>Triggered</span><span>Micro-payout</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="simulator" class="scene simulator" data-scenario="safe">
+        <div class="section-head">
+          <p class="eyebrow">3.5 · Parametric trigger cockpit</p>
+          <h2>Turn disruption into programmable liquidity</h2>
+          <p>
+            The same Maritime Resilience Policy can settle either pre-departure roll-overs or
+            post-departure port congestion through objective oracle events.
+          </p>
+        </div>
+        <div class="simulator-shell">
+          <div class="sim-control">
+            <div class="control-row">
+              <label for="delayRange">AIS anchorage hours</label>
+              <strong><span id="delayValue">42</span>h</strong>
+            </div>
+            <input id="delayRange" type="range" min="0" max="120" value="42" />
+            <div class="threshold-track" aria-hidden="true">
+              <span style="--x: 60%">72h trigger</span>
+              <i id="delayFill"></i>
+            </div>
+            <div class="scenario-buttons" aria-label="Scenario controls">
+              <button type="button" data-scenario-button="safe">Normal expiry</button>
+              <button type="button" data-scenario-button="port">Port delay</button>
+              <button type="button" data-scenario-button="rollover">Roll-over</button>
+            </div>
+            <div class="oracle-checks">
+              <span>AIS feed</span>
+              <span>Port authority</span>
+              <span>Carrier / terminal API</span>
+            </div>
+          </div>
+
+          <div class="route-stage" aria-label="Interactive maritime policy route">
+            <div class="route-node origin">Origin</div>
+            <div class="route-node vessel">Vessel IMO</div>
+            <div class="route-node anchorage">Anchorage</div>
+            <div class="route-node policy-node">Policy Manager</div>
+            <div class="route-node pool-node">Risk Pool</div>
+            <div class="route-node wallet">SME Wallet</div>
+            <svg viewBox="0 0 760 300" preserveAspectRatio="none" aria-hidden="true">
+              <path class="sea-route" d="M70 180 C170 72 270 210 365 130 S555 145 690 88" />
+              <path class="settle-route" d="M386 160 C472 232 568 225 682 182" />
+            </svg>
+            <div class="ship-token"></div>
+            <div class="payout-token">USDC</div>
+          </div>
+
+          <div class="settlement-panel">
+            <span id="scenarioLabel">No trigger before policy expiry</span>
+            <h3 id="settlementStatus">Expired without claim</h3>
+            <p id="settlementCopy">
+              Reserved capital is released back to the pool; premium remains as LP yield.
+            </p>
+            <dl>
+              <div>
+                <dt>Payout</dt>
+                <dd id="payoutValue">0 USDC</dd>
+              </div>
+              <div>
+                <dt>LP outcome</dt>
+                <dd id="lpOutcome">Premium retained</dd>
+              </div>
+            </dl>
+          </div>
         </div>
       </section>
 
       <section id="contract" class="scene contract">
         <div class="section-head">
           <p class="eyebrow">4 · Smart contract / dApp design</p>
-          <h2>From physical event to atomic settlement</h2>
+          <h2>Policy lifecycle sequence</h2>
         </div>
-        <div class="flow-board" aria-label="OceanNode policy lifecycle">
-          <div class="actor lp">Liquidity Provider</div>
-          <div class="actor pool">Risk Pool</div>
-          <div class="actor sme">SME Importer</div>
-          <div class="actor policy">Policy Manager</div>
-          <div class="actor oracle">Oracle Network</div>
-          <div class="flow-step s1">Deposit USDC</div>
-          <div class="flow-step s2">Issue policy</div>
-          <div class="flow-step s3">Verify AIS / port data</div>
-          <div class="flow-step s4">Trigger event</div>
-          <div class="flow-step s5">Fixed USDC payout</div>
-          <svg class="flow-lines" viewBox="0 0 1000 460" preserveAspectRatio="none" aria-hidden="true">
-            <path class="path p1" d="M110 95 C190 95 190 95 270 95" />
-            <path class="path p2" d="M490 165 C570 165 570 165 650 165" />
-            <path class="path p3" d="M830 250 C760 250 760 250 690 250" />
-            <path class="path p4" d="M640 330 C520 330 410 330 300 330" />
-            <path class="path p5" d="M280 385 C380 385 390 385 490 385" />
-          </svg>
+        <div class="contract-flow" aria-label="OceanNode policy lifecycle flow">
+          <div class="participant-strip">
+            <span>Liquidity Provider</span>
+            <span>Risk Pool Contract</span>
+            <span>SME Importer</span>
+            <span>Policy Manager</span>
+            <span>Oracle Network</span>
+            <span>External Data Sources</span>
+          </div>
+
+          <div class="phase-grid">
+            <article class="phase-card">
+              <span>01 · Liquidity</span>
+              <h3>Underwriting capital enters the pool</h3>
+              <p>LP deposits USDC into the Risk Pool; the Risk Pool issues pool shares back to the LP.</p>
+            </article>
+            <article class="phase-card">
+              <span>02 · Policy issue</span>
+              <h3>SME buys covered capacity</h3>
+              <p>SME submits shipment details; Policy Manager checks Risk Pool capacity, routes the USDC premium, and issues the Maritime Resilience Policy.</p>
+            </article>
+            <article class="phase-card">
+              <span>03 · Oracle verification</span>
+              <h3>Physical events become signed data</h3>
+              <p>Carrier APIs, port systems, and AIS feeds pass into the Oracle Network, which submits verified shipment status to the Policy Manager.</p>
+            </article>
+          </div>
+
+          <div class="outcome-grid">
+            <article>
+              <span>alt A</span>
+              <h3>Container roll-over</h3>
+              <p>Policy requests a roll-over micro-payout; Risk Pool transfers fixed USDC; status becomes Partially Paid or Paid Out.</p>
+            </article>
+            <article class="accent">
+              <span>alt B · Idea 1</span>
+              <h3>Port congestion delay</h3>
+              <p>AIS confirms the vessel remains in destination anchorage for over 72h; Policy requests the port-delay payout; Risk Pool transfers fixed USDC.</p>
+            </article>
+            <article>
+              <span>else</span>
+              <h3>No trigger before expiry</h3>
+              <p>Policy is marked Expired; reserved capital is released and premium remains in the pool as LP yield.</p>
+            </article>
+          </div>
+
+          <div class="withdrawal-line">
+            <strong>Withdrawal</strong>
+            <span>LP requests available capital → Risk Pool returns withdrawable USDC and yield</span>
+          </div>
         </div>
         <div class="state-strip" aria-label="Policy states">
           <span>Quoted</span>
@@ -198,6 +299,49 @@
           <span>Monitoring</span>
           <span>Triggered</span>
           <span>Paid</span>
+        </div>
+      </section>
+
+      <section id="capital" class="scene capital">
+        <div class="section-head">
+          <p class="eyebrow">4.1 · Underwriting capital logic</p>
+          <h2>LP capital is programmable insurance capacity</h2>
+          <p>
+            The pool does not simply hold deposits. It moves LP capital through explicit states so
+            OceanNode cannot sell coverage without reserved payout capacity.
+          </p>
+        </div>
+        <div class="capital-map" aria-label="LP capital state transition map">
+          <article>
+            <span>01</span>
+            <h3>Deposited / Available</h3>
+            <p>LP stakes USDC and receives pool shares.</p>
+          </article>
+          <article>
+            <span>02</span>
+            <h3>Reserved</h3>
+            <p>Policy issuance locks capital as underwriting capacity.</p>
+          </article>
+          <article>
+            <span>03</span>
+            <h3>Premium-Earning</h3>
+            <p>SME premium is routed into the pool as yield.</p>
+          </article>
+          <article class="danger">
+            <span>04</span>
+            <h3>Claimed</h3>
+            <p>A valid roll-over or port-delay trigger pays the SME.</p>
+          </article>
+          <article>
+            <span>05</span>
+            <h3>Released</h3>
+            <p>No trigger before expiry returns capacity to the pool.</p>
+          </article>
+          <article class="golden">
+            <span>06</span>
+            <h3>Withdrawable</h3>
+            <p>LP exits with available USDC and earned yield, minus claims.</p>
+          </article>
         </div>
       </section>
 

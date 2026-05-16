@@ -13,6 +13,7 @@ const renderer = new THREE.WebGLRenderer({
   canvas,
   antialias: true,
   alpha: true,
+  preserveDrawingBuffer: true,
   powerPreference: "high-performance",
 });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8));
@@ -258,10 +259,12 @@ function sectionTarget(index) {
     { camera: [-3, 5.2, 17], ship: [1.9, 0.35, -1.4], rot: -0.32 },
     { camera: [0, 7.2, 19], ship: [-2.2, 0.45, -0.7], rot: -0.22 },
     { camera: [2.5, 5.2, 16], ship: [0.2, 0.55, -1.4], rot: -0.48 },
+    { camera: [1.8, 5.3, 15.2], ship: [0.8, 0.52, -1.2], rot: -0.42 },
     { camera: [-2.5, 5.6, 15], ship: [-2.8, 0.55, 0.2], rot: 0.16 },
     { camera: [-4, 5.8, 15], ship: [-2.8, 0.45, 0.8], rot: 0.1 },
     { camera: [1.2, 7.5, 18], ship: [-1.4, 0.5, -1], rot: -0.3 },
     { camera: [0, 5.7, 16], ship: [-2.1, 0.4, -0.2], rot: -0.18 },
+    { camera: [0, 6.8, 18], ship: [-2.1, 0.4, -0.2], rot: -0.18 },
     { camera: [0, 8.4, 22], ship: [-2.4, 0.45, -0.4], rot: -0.18 },
   ];
   return presets[index] || presets[0];
@@ -290,6 +293,73 @@ window.addEventListener("pointermove", (event) => {
   pointer.x = (event.clientX / window.innerWidth - 0.5) * 2;
   pointer.y = (event.clientY / window.innerHeight - 0.5) * 2;
 });
+
+const simulator = document.querySelector("#simulator");
+const delayRange = document.querySelector("#delayRange");
+const delayValue = document.querySelector("#delayValue");
+const delayFill = document.querySelector("#delayFill");
+const scenarioLabel = document.querySelector("#scenarioLabel");
+const settlementStatus = document.querySelector("#settlementStatus");
+const settlementCopy = document.querySelector("#settlementCopy");
+const payoutValue = document.querySelector("#payoutValue");
+const lpOutcome = document.querySelector("#lpOutcome");
+const scenarioButtons = [...document.querySelectorAll("[data-scenario-button]")];
+
+const scenarios = {
+  safe: {
+    delay: 42,
+    label: "No trigger before policy expiry",
+    status: "Expired without claim",
+    copy: "Reserved capital is released back to the pool; premium remains as LP yield.",
+    payout: "0 USDC",
+    lp: "Premium retained",
+  },
+  port: {
+    delay: 76,
+    label: "Trigger B · Idea 1",
+    status: "Port-delay payout",
+    copy: "AIS and port records confirm the vessel stayed in destination anchorage for more than 72 hours.",
+    payout: "2,000 USDC",
+    lp: "Reserved capital used for claim",
+  },
+  rollover: {
+    delay: 18,
+    label: "Trigger A · Idea 5",
+    status: "Roll-over micro-payout",
+    copy: "Carrier and terminal data confirm the insured container missed the scheduled vessel.",
+    payout: "650 USDC",
+    lp: "Small claim absorbed by pool",
+  },
+};
+
+function renderScenario(name, delayOverride = null) {
+  if (!simulator) return;
+  const base = scenarios[name] || scenarios.safe;
+  const delay = delayOverride ?? base.delay;
+  simulator.dataset.scenario = name;
+  delayRange.value = String(delay);
+  delayValue.textContent = String(delay);
+  delayFill.style.width = `${Math.min(100, (delay / 120) * 100)}%`;
+  scenarioLabel.textContent = base.label;
+  settlementStatus.textContent = base.status;
+  settlementCopy.textContent = base.copy;
+  payoutValue.textContent = base.payout;
+  lpOutcome.textContent = base.lp;
+  scenarioButtons.forEach((button) => {
+    button.setAttribute("aria-pressed", String(button.dataset.scenarioButton === name));
+  });
+}
+
+if (simulator && delayRange) {
+  scenarioButtons.forEach((button) => {
+    button.addEventListener("click", () => renderScenario(button.dataset.scenarioButton));
+  });
+  delayRange.addEventListener("input", () => {
+    const delay = Number(delayRange.value);
+    renderScenario(delay >= 72 ? "port" : "safe", delay);
+  });
+  renderScenario("safe");
+}
 
 const observer = new IntersectionObserver(
   (entries) => {
