@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OceanNode | Maritime Resilience Protocol</title>
+    <meta
+      name="description"
+      content="Presentation website for OceanNode, a blockchain-enabled maritime parametric insurance protocol for SME importers."
+    />
+    <link rel="preconnect" href="https://unpkg.com" />
+    <link rel="preconnect" href="https://commons.wikimedia.org" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <canvas id="ocean-canvas" aria-hidden="true"></canvas>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <a class="brand" href="#intro" aria-label="OceanNode home">
+        <span class="brand-mark"></span>
+        <span>OceanNode</span>
+      </a>
+      <nav class="nav" aria-label="Presentation sections">
+        <a href="#problem">Problem</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#triggers">Triggers</a>
+        <a href="#contract">Contract</a>
+        <a href="#asset">Asset</a>
+        <a href="#valuation">Viability</a>
+      </nav>
+      <div class="progress-shell" aria-hidden="true">
+        <div id="progress-bar"></div>
+      </div>
+    </header>
+
+    <main>
+      <section id="intro" class="scene hero" data-theme="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">SC6125 Blockchain in Finance · Group 3</p>
+          <h1>OceanNode</h1>
+          <p class="thesis">
+            A decentralized maritime insurance protocol that converts port delays and container
+            roll-overs into instant, oracle-verified liquidity for SME importers.
+          </p>
+          <div class="hero-actions">
+            <a class="primary-link" href="#problem">Begin presentation</a>
+            <a class="ghost-link" href="#contract">See the flow</a>
+          </div>
+        </div>
+        <div class="hero-metrics" aria-label="Key project metrics">
+          <div>
+            <strong>72h</strong>
+            <span>AIS anchorage delay trigger</span>
+          </div>
+          <div>
+            <strong>USDC</strong>
+            <span>Premium and payout asset</span>
+          </div>
+          <div>
+            <strong>2</strong>
+            <span>Supply-chain chokepoints covered</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="problem" class="scene split">
+        <div class="copy">
+          <p class="eyebrow">1 · Problem definition</p>
+          <h2>The SME liquidity trap</h2>
+          <p>
+            For Singapore SME importers moving pharmaceuticals, fresh produce, and premium food,
+            maritime disruption is not just a logistics problem. It freezes working capital inside
+            cargo that cannot be sold, delivered, or financed on schedule.
+          </p>
+          <div class="callout">
+            <span>Traditional claims arrive after the cash crisis.</span>
+            <p>
+              OceanNode reframes the problem: protect the SME cash cycle at the moment a verified
+              physical event breaks it.
+            </p>
+          </div>
+        </div>
+        <div class="visual port-visual" role="img" aria-label="Aerial Singapore port visual">
+          <div class="scanline"></div>
+          <div class="port-label">Singapore maritime hub</div>
+        </div>
+      </section>
+
+      <section id="architecture" class="scene architecture">
+        <div class="section-head">
+          <p class="eyebrow">2 · System architecture</p>
+          <h2>One policy, two worlds</h2>
+          <p>
+            OceanNode is a hybrid system: smart contracts settle value on-chain, while maritime
+            oracles bring AIS, carrier, terminal, and port data across the trust boundary.
+          </p>
+        </div>
+        <div class="architecture-grid">
+          <article class="layer onchain">
+            <h3>On-chain trustless layer</h3>
+            <ul>
+              <li>Policy Manager Contract</li>
+              <li>Risk Pool Contract</li>
+              <li>USDC premium and payout rails</li>
+              <li>Immutable policy status history</li>
+            </ul>
+          </article>
+          <div class="boundary">
+            <span>Oracle trust boundary</span>
+            <div class="pulse-line"></div>
+          </div>
+          <article class="layer offchain">
+            <h3>Off-chain data layer</h3>
+            <ul>
+              <li>AIS vessel position and anchorage status</li>
+              <li>Carrier EDI / booking data</li>
+              <li>Port authority and terminal operating systems</li>
+              <li>Cross-checks before payout confirmation</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="triggers" class="scene triggers">
+        <div class="section-head">
+          <p class="eyebrow">3 · Core ideas</p>
+          <h2>Maritime Resilience Policy</h2>
+          <p>
+            OceanNode combines risk coverage and underwriting into one coherent protocol, not three
+            isolated products.
+          </p>
+        </div>
+        <div class="trigger-grid">
+          <article class="trigger-card active-card">
+            <span class="tag">Idea 1 · Trigger B</span>
+            <h3>Port delays</h3>
+            <p>
+              AIS verifies whether a vessel remains within the destination anchorage zone for more
+              than 72 consecutive hours.
+            </p>
+            <div class="mini-flow">
+              <span>AIS</span><span>72h</span><span>Triggered</span><span>USDC payout</span>
+            </div>
+          </article>
+          <article class="trigger-card">
+            <span class="tag">Idea 5 · Trigger A</span>
+            <h3>Container roll-overs</h3>
+            <p>
+              Carrier and terminal APIs verify whether the insured container missed the scheduled
+              vessel and was reassigned to a later sailing.
+            </p>
+            <div class="mini-flow">
+              <span>Carrier API</span><span>Not loaded</span><span>Triggered</span><span>Micro-payout</span>
+            </div>
+          </article>
+          <article class="trigger-card">
+            <span class="tag">Idea 2 · Back end</span>
+            <h3>DeFi risk pool</h3>
+            <p>
+              LPs stake USDC into a maritime risk pool and earn premiums when policies expire
+              without claims.
+            </p>
+            <div class="mini-flow">
+              <span>LP deposit</span><span>Reserve</span><span>Premium yield</span><span>Claim loss</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="contract" class="scene contract">
+        <div class="section-head">
+          <p class="eyebrow">4 · Smart contract / dApp design</p>
+          <h2>From physical event to atomic settlement</h2>
+        </div>
+        <div class="flow-board" aria-label="OceanNode policy lifecycle">
+          <div class="actor lp">Liquidity Provider</div>
+          <div class="actor pool">Risk Pool</div>
+          <div class="actor sme">SME Importer</div>
+          <div class="actor policy">Policy Manager</div>
+          <div class="actor oracle">Oracle Network</div>
+          <div class="flow-step s1">Deposit USDC</div>
+          <div class="flow-step s2">Issue policy</div>
+          <div class="flow-step s3">Verify AIS / port data</div>
+          <div class="flow-step s4">Trigger event</div>
+          <div class="flow-step s5">Fixed USDC payout</div>
+          <svg class="flow-lines" viewBox="0 0 1000 460" preserveAspectRatio="none" aria-hidden="true">
+            <path class="path p1" d="M110 95 C190 95 190 95 270 95" />
+            <path class="path p2" d="M490 165 C570 165 570 165 650 165" />
+            <path class="path p3" d="M830 250 C760 250 760 250 690 250" />
+            <path class="path p4" d="M640 330 C520 330 410 330 300 330" />
+            <path class="path p5" d="M280 385 C380 385 390 385 490 385" />
+          </svg>
+        </div>
+        <div class="state-strip" aria-label="Policy states">
+          <span>Quoted</span>
+          <span>Active</span>
+          <span>Monitoring</span>
+          <span>Triggered</span>
+          <span>Paid</span>
+        </div>
+      </section>
+
+      <section id="asset" class="scene asset">
+        <div class="copy">
+          <p class="eyebrow">5 · Digital asset comparison</p>
+          <h2>Stable settlement, not speculative exposure</h2>
+          <p>
+            OceanNode uses USDC for premiums, reserves, and payouts because SMEs need claim value
+            that behaves like working capital, while LPs need a stable unit of account for loss
+            ratios and yield.
+          </p>
+        </div>
+        <div class="asset-comparison">
+          <div class="asset-row winner">
+            <span>USDC / stablecoin</span>
+            <strong>Best prototype fit</strong>
+            <p>Fast settlement, low volatility, direct smart contract composability.</p>
+          </div>
+          <div class="asset-row">
+            <span>CBDC</span>
+            <strong>Institutional future</strong>
+            <p>Strong trust profile, but not yet practical for an open DeFi-style pool.</p>
+          </div>
+          <div class="asset-row">
+            <span>ETH / volatile crypto</span>
+            <strong>Rejected for payouts</strong>
+            <p>Adds market risk on top of maritime underwriting risk.</p>
+          </div>
+          <div class="asset-row">
+            <span>$NODE</span>
+            <strong>Optional incentives only</strong>
+            <p>Useful for governance, not for claim-paying capacity.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="risk" class="scene risk">
+        <div class="section-head">
+          <p class="eyebrow">6 · Risk controls</p>
+          <h2>The design is only credible if the risks are explicit</h2>
+        </div>
+        <div class="risk-grid">
+          <article>
+            <h3>Oracle risk</h3>
+            <p>Cross-check AIS feeds with port and terminal records before confirming payout.</p>
+          </article>
+          <article>
+            <h3>Pool solvency</h3>
+            <p>Cap insured exposure per pool and reserve payout capital before policies go live.</p>
+          </article>
+          <article>
+            <h3>Stablecoin risk</h3>
+            <p>Whitelist reputable backed stablecoins and disclose issuer, freeze, and depeg risk.</p>
+          </article>
+          <article>
+            <h3>Regulatory risk</h3>
+            <p>Use KYC/AML controls and partner with licensed insurers for enforceable policies.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="valuation" class="scene finale">
+        <div class="final-copy">
+          <p class="eyebrow">7 · Evaluation & valuation</p>
+          <h2>From Web3 proof-of-concept to regulated FinTech infrastructure</h2>
+          <p>
+            OceanNode is most viable as a hybrid B2B/B2B2C platform: licensed insurers legally
+            issue policies, while blockchain infrastructure handles decentralized underwriting,
+            oracle-triggered automation, and atomic settlement.
+          </p>
+          <div class="closing-line">
+            <span>Faster claims</span>
+            <span>Lower micro-insurance cost</span>
+            <span>New underwriting capital</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="sources" class="scene sources">
+        <div class="section-head">
+          <p class="eyebrow">Research sources</p>
+          <h2>References used for the presentation website</h2>
+        </div>
+        <ol class="source-list">
+          <li>
+            <a href="https://www.imo.org/en/ourwork/safety/navigation/ais.aspx" target="_blank" rel="noreferrer">
+              International Maritime Organization: AIS transponders and SOLAS carriage rules
+            </a>
+          </li>
+          <li>
+            <a href="https://chain.link/use-cases/insurance" target="_blank" rel="noreferrer">
+              Chainlink: blockchain-enabled insurance and parametric claims automation
+            </a>
+          </li>
+          <li>
+            <a href="https://chain.link/case-studies/otonomi" target="_blank" rel="noreferrer">
+              Chainlink / Otonomi: parametric insurance oracle case study
+            </a>
+          </li>
+          <li>
+            <a
+              href="https://www.mpa.gov.sg/media-centre/details/strong-growth-momentum-for-maritime-singapore"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Maritime and Port Authority of Singapore: container volume and maritime hub context
+            </a>
+          </li>
+          <li>
+            <a
+              href="https://www.mas.gov.sg/news/media-releases/2023/mas-finalises-stablecoin-regulatory-framework"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Monetary Authority of Singapore: stablecoin regulatory framework
+            </a>
+          </li>
+          <li>
+            <a
+              href="https://commons.wikimedia.org/wiki/File:Pasir_Panjang_Port_Terminal.jpg"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Wikimedia Commons: Pasir Panjang Port Terminal visual reference
+            </a>
+          </li>
+        </ol>
+      </section>
+    </main>
+
+    <aside class="slide-controls" aria-label="Slide controls">
+      <button id="prev-slide" type="button">Prev</button>
+      <span id="slide-counter">01 / 08</span>
+      <button id="next-slide" type="button">Next</button>
+    </aside>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.165.0/build/three.module.js"
+        }
+      }
+    </script>
+    <script type="module" src="./script.js"></script>
+  </body>
+</html>
