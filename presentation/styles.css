@@ -363,6 +363,143 @@ p {
   font-weight: 760;
 }
 
+.signal-board {
+  display: grid;
+  grid-template-columns: 1.25fr 0.8fr 0.8fr 1fr;
+  gap: 14px;
+  width: min(100%, 1220px);
+  justify-self: center;
+}
+
+.signals {
+  padding-top: 82px;
+  padding-bottom: 38px;
+}
+
+.signals .section-head {
+  margin-bottom: 22px;
+}
+
+.signals h2 {
+  font-size: clamp(2.4rem, 4.8vw, 5rem);
+}
+
+.signal-card {
+  min-height: 316px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 24px 90px rgba(0, 0, 0, 0.24);
+}
+
+.signal-card.feature {
+  padding: 0;
+  overflow: hidden;
+}
+
+.signal-card.feature > span,
+.signal-card.feature h3,
+.signal-card.feature p,
+.signal-card.feature a {
+  margin-left: 18px;
+  margin-right: 18px;
+}
+
+.signal-media {
+  min-height: 124px;
+  margin-bottom: 14px;
+}
+
+.signal-media.pasir {
+  background:
+    linear-gradient(180deg, rgba(6, 17, 15, 0), rgba(6, 17, 15, 0.62)),
+    url("https://commons.wikimedia.org/wiki/Special:FilePath/Pasir%20Panjang%20Port%20Terminal.jpg")
+      center / cover;
+}
+
+.signal-card span {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--gold);
+  font-size: 0.72rem;
+  font-weight: 880;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.signal-card h3 {
+  margin-bottom: 9px;
+  font-size: 1.24rem;
+}
+
+.signal-card p {
+  font-size: 0.84rem;
+  line-height: 1.44;
+}
+
+.signal-card a {
+  display: inline-flex;
+  margin-top: 4px;
+  color: var(--mint);
+  font-size: 0.86rem;
+  font-weight: 820;
+  text-decoration-color: rgba(154, 240, 216, 0.48);
+  text-underline-offset: 4px;
+}
+
+.signal-stat {
+  display: grid;
+  place-items: center;
+  min-height: 106px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(154, 240, 216, 0.2);
+  border-radius: 8px;
+  background: rgba(154, 240, 216, 0.08);
+  color: var(--ink);
+  font-size: 3.6rem;
+  font-weight: 900;
+}
+
+.video-poster {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin-bottom: 14px;
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(6, 17, 15, 0), rgba(6, 17, 15, 0.66)),
+    url("https://commons.wikimedia.org/wiki/Special:FilePath/Container%20terminal%20from%20above%20%28Unsplash%29.jpg")
+      center / cover;
+  overflow: hidden;
+}
+
+.video-poster span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 58px;
+  height: 58px;
+  margin: 0;
+  border-radius: 50%;
+  background: rgba(246, 240, 231, 0.92);
+  transform: translate(-50%, -50%);
+}
+
+.video-poster span::after {
+  content: "";
+  position: absolute;
+  left: 23px;
+  top: 17px;
+  width: 0;
+  height: 0;
+  border-top: 12px solid transparent;
+  border-bottom: 12px solid transparent;
+  border-left: 18px solid #06110f;
+}
+
 .section-head {
   justify-self: center;
   text-align: center;
@@ -374,6 +511,7 @@ p {
 .contract,
 .simulator,
 .capital,
+.signals,
 .risk,
 .sources {
   align-content: center;
@@ -924,8 +1062,23 @@ p {
 }
 
 .simulator {
-  padding-top: 82px;
-  padding-bottom: 42px;
+  min-height: 300vh;
+  padding: 0;
+  display: block;
+}
+
+.simulator-sticky {
+  position: sticky;
+  top: 0;
+  min-height: 100vh;
+  display: grid;
+  align-content: center;
+  padding: 82px clamp(20px, 6vw, 86px) 42px;
+}
+
+.simulator > .simulator-sticky {
+  opacity: 1;
+  transform: none;
 }
 
 .simulator .section-head {
@@ -975,7 +1128,7 @@ p {
 
 .control-row strong {
   color: var(--ink);
-  font-size: 2.5rem;
+  font-size: 2.1rem;
   line-height: 1;
 }
 
@@ -1025,7 +1178,7 @@ p {
 }
 
 .scenario-buttons button {
-  min-height: 42px;
+  min-height: 36px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.06);
@@ -1047,13 +1200,13 @@ p {
 
 .oracle-checks {
   display: grid;
-  gap: 9px;
-  margin-top: 24px;
+  gap: 7px;
+  margin-top: 16px;
 }
 
 .oracle-checks span {
   position: relative;
-  padding: 9px 10px 9px 28px;
+  padding: 7px 10px 7px 28px;
   border: 1px solid rgba(154, 240, 216, 0.2);
   border-radius: 8px;
   color: var(--muted);
@@ -1503,6 +1656,11 @@ p {
 .scene.in-view > * {
   opacity: 1;
   transform: translateY(0);
+}
+
+.simulator > .simulator-sticky {
+  opacity: 1 !important;
+  transform: none !important;
 }
 
 @keyframes scan {

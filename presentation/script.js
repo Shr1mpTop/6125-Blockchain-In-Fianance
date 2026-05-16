@@ -157,6 +157,31 @@ const ship = buildShip();
 ship.scale.setScalar(1.18);
 scene.add(ship);
 
+const harborShip = buildShip();
+harborShip.scale.setScalar(0.72);
+harborShip.position.set(11.5, -0.25, -5.8);
+harborShip.rotation.y = -0.72;
+scene.add(harborShip);
+
+const chainGroup = new THREE.Group();
+const blockMaterial = new THREE.MeshStandardMaterial({
+  color: colors.mint,
+  roughness: 0.32,
+  metalness: 0.28,
+  emissive: colors.teal,
+  emissiveIntensity: 0.12,
+  transparent: true,
+  opacity: 0.86,
+});
+for (let index = 0; index < 6; index += 1) {
+  const block = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.42, 0.42), blockMaterial.clone());
+  block.position.set(-1.3 + index * 0.54, 0.58 + Math.sin(index) * 0.12, 2.7);
+  block.rotation.set(0.4, index * 0.35, 0.2);
+  chainGroup.add(block);
+}
+chainGroup.position.set(1.7, 0.15, 0.1);
+scene.add(chainGroup);
+
 function makeCrane(x, z, height, color) {
   const group = new THREE.Group();
   const material = new THREE.MeshStandardMaterial({
@@ -270,6 +295,11 @@ function sectionTarget(index) {
   return presets[index] || presets[0];
 }
 
+function pageProgress() {
+  const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
+  return documentHeight <= 0 ? 0 : window.scrollY / documentHeight;
+}
+
 function updateCounter() {
   const current = String(activeIndex + 1).padStart(2, "0");
   const total = String(sections.length).padStart(2, "0");
@@ -350,6 +380,24 @@ function renderScenario(name, delayOverride = null) {
   });
 }
 
+function updateSimulatorFromScroll() {
+  if (!simulator) return;
+  const rect = simulator.getBoundingClientRect();
+  const scrollable = simulator.offsetHeight - window.innerHeight;
+  if (rect.top > 0 || rect.bottom < window.innerHeight || scrollable <= 0) return;
+  const progress = Math.min(1, Math.max(0, -rect.top / scrollable));
+
+  if (progress < 0.34) {
+    const delay = Math.round(24 + progress * 72);
+    renderScenario("safe", delay);
+  } else if (progress < 0.67) {
+    renderScenario("rollover", 18);
+  } else {
+    const delay = Math.round(72 + (progress - 0.67) / 0.33 * 42);
+    renderScenario("port", Math.min(120, delay));
+  }
+}
+
 if (simulator && delayRange) {
   scenarioButtons.forEach((button) => {
     button.addEventListener("click", () => renderScenario(button.dataset.scenarioButton));
@@ -378,13 +426,14 @@ sections[0].classList.add("in-view");
 updateCounter();
 
 function updateProgress() {
-  const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
-  const progress = documentHeight <= 0 ? 0 : window.scrollY / documentHeight;
+  const progress = pageProgress();
   progressBar.style.width = `${Math.min(100, Math.max(0, progress * 100))}%`;
 }
 
 window.addEventListener("scroll", updateProgress, { passive: true });
+window.addEventListener("scroll", updateSimulatorFromScroll, { passive: true });
 updateProgress();
+updateSimulatorFromScroll();
 
 window.addEventListener("resize", () => {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8));
@@ -395,6 +444,7 @@ window.addEventListener("resize", () => {
 
 function animate() {
   const elapsed = clock.getElapsedTime();
+  const scroll = pageProgress();
   oceanUniforms.uTime.value = elapsed;
 
   const target = sectionTarget(activeIndex);
@@ -406,6 +456,21 @@ function animate() {
   ship.position.lerp(new THREE.Vector3(...target.ship), 0.036);
   ship.rotation.y += (target.rot + Math.sin(elapsed * 0.42) * 0.025 - ship.rotation.y) * 0.04;
   ship.position.y += Math.sin(elapsed * 1.4) * 0.002;
+
+  const harborProgress = Math.min(1, Math.max(0, (scroll - 0.08) / 0.55));
+  harborShip.position.x = 11.5 - harborProgress * 14.6;
+  harborShip.position.z = -5.8 + harborProgress * 4.15;
+  harborShip.position.y = -0.32 + Math.sin(elapsed * 1.2 + 1.8) * 0.08;
+  harborShip.rotation.y = -0.72 + harborProgress * 0.46 + Math.sin(elapsed * 0.38) * 0.025;
+
+  chainGroup.children.forEach((block, index) => {
+    block.rotation.x += 0.006 + index * 0.0008;
+    block.rotation.y += 0.008;
+    block.position.y = 0.58 + Math.sin(elapsed * 1.4 + index * 0.7) * 0.13;
+    block.material.opacity = 0.62 + Math.sin(elapsed * 1.8 + index) * 0.18;
+  });
+  chainGroup.position.y = Math.sin(elapsed * 0.9) * 0.08;
+  chainGroup.rotation.y = Math.sin(elapsed * 0.35) * 0.12;
 
   anchorageRing.rotation.z = elapsed * 0.18;
   anchorageRing.material.opacity = 0.35 + Math.sin(elapsed * 1.7) * 0.18;
