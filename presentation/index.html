@@ -308,6 +308,23 @@
           <h2>Policy lifecycle sequence</h2>
         </div>
         <div class="contract-flow" aria-label="OceanNode policy lifecycle flow">
+          <div class="protocol-map" aria-label="Animated OceanNode protocol node map">
+            <div class="protocol-node lp-node">LP</div>
+            <div class="protocol-node pool-node-map">Risk Pool</div>
+            <div class="protocol-node sme-node">SME</div>
+            <div class="protocol-node policy-node-map">Policy Manager</div>
+            <div class="protocol-node oracle-node-map">Oracle</div>
+            <div class="protocol-node data-node">AIS / Carrier / Port</div>
+            <span class="edge e-lp-pool"></span>
+            <span class="edge e-sme-policy"></span>
+            <span class="edge e-policy-pool"></span>
+            <span class="edge e-data-oracle"></span>
+            <span class="edge e-oracle-policy"></span>
+            <span class="edge e-pool-sme"></span>
+            <i class="packet q1"></i>
+            <i class="packet q2"></i>
+            <i class="packet q3"></i>
+          </div>
           <div class="participant-strip">
             <span>Liquidity Provider</span>
             <span>Risk Pool Contract</span>

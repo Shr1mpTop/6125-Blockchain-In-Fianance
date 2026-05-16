@@ -121,31 +121,104 @@ function roundedBox(width, height, depth, color, roughness = 0.55, metalness = 0
 function buildShip() {
   const group = new THREE.Group();
 
-  const hull = roundedBox(5.8, 0.7, 1.45, colors.hull, 0.62, 0.12);
-  hull.position.y = -1.25;
-  hull.scale.x = 1.12;
+  const hullGeometry = new THREE.BufferGeometry();
+  const l = 6.8;
+  const w = 1.55;
+  const deckY = -0.64;
+  const keelY = -1.46;
+  const stern = -l / 2;
+  const bowBase = l / 2 - 0.86;
+  const bowTip = l / 2 + 0.44;
+  const vertices = new Float32Array([
+    stern, deckY, -w / 2,
+    stern, deckY, w / 2,
+    bowBase, deckY, -w / 2,
+    bowBase, deckY, w / 2,
+    bowTip, deckY - 0.08, 0,
+    stern + 0.34, keelY, -w * 0.34,
+    stern + 0.34, keelY, w * 0.34,
+    bowBase, keelY + 0.08, -w * 0.18,
+    bowBase, keelY + 0.08, w * 0.18,
+    bowTip, keelY + 0.14, 0,
+  ]);
+  const indices = [
+    0, 2, 1, 1, 2, 3, 2, 4, 3,
+    5, 6, 7, 6, 8, 7, 7, 8, 9,
+    0, 5, 2, 2, 5, 7, 2, 7, 4, 4, 7, 9,
+    1, 3, 6, 3, 8, 6, 3, 4, 8, 4, 9, 8,
+    0, 1, 5, 1, 6, 5,
+  ];
+  hullGeometry.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
+  hullGeometry.setIndex(indices);
+  hullGeometry.computeVertexNormals();
+
+  const hull = new THREE.Mesh(
+    hullGeometry,
+    new THREE.MeshStandardMaterial({
+      color: 0x102521,
+      roughness: 0.48,
+      metalness: 0.18,
+      emissive: 0x102521,
+      emissiveIntensity: 0.04,
+    })
+  );
   group.add(hull);
 
-  const bow = new THREE.Mesh(
-    new THREE.ConeGeometry(0.78, 1.6, 4),
-    new THREE.MeshStandardMaterial({ color: colors.hull, roughness: 0.6, metalness: 0.08 })
+  const hullEdge = new THREE.LineSegments(
+    new THREE.EdgesGeometry(hullGeometry, 24),
+    new THREE.LineBasicMaterial({ color: 0x9af0d8, transparent: true, opacity: 0.18 })
   );
-  bow.rotation.z = Math.PI / 2;
-  bow.rotation.y = Math.PI / 4;
-  bow.position.set(3.62, -1.25, 0);
-  group.add(bow);
+  group.add(hullEdge);
 
-  const bridge = roundedBox(1.0, 1.05, 1.15, 0xf3efe4, 0.42, 0.04);
-  bridge.position.set(-2.55, -0.34, 0);
+  const deck = roundedBox(5.45, 0.1, 1.25, 0x21352f, 0.5, 0.12);
+  deck.position.set(-0.24, deckY + 0.09, 0);
+  group.add(deck);
+
+  const bridge = roundedBox(1.04, 1.08, 1.02, 0xf3efe4, 0.38, 0.05);
+  bridge.position.set(-2.72, 0.0, 0);
   group.add(bridge);
 
+  const bridgeTop = roundedBox(0.82, 0.18, 0.82, 0x24342f, 0.42, 0.08);
+  bridgeTop.position.set(-2.72, 0.64, 0);
+  group.add(bridgeTop);
+
+  for (let index = 0; index < 3; index += 1) {
+    const windowBand = roundedBox(0.06, 0.12, 0.72, 0x21c2b2, 0.25, 0.02);
+    windowBand.position.set(-2.18, 0.1 + index * 0.18, 0);
+    windowBand.material.emissiveIntensity = 0.25;
+    group.add(windowBand);
+  }
+
   const containerPalette = [colors.coral, colors.gold, colors.teal, colors.violet, 0xefefdf];
-  for (let row = 0; row < 3; row += 1) {
-    for (let col = 0; col < 7; col += 1) {
-      const box = roundedBox(0.64, 0.36, 0.54, containerPalette[(row + col) % containerPalette.length]);
-      box.position.set(-1.72 + col * 0.64, -0.82 + row * 0.38, -0.32 + (col % 2) * 0.64);
+  for (let tier = 0; tier < 3; tier += 1) {
+    for (let col = 0; col < 8; col += 1) {
+      const stackWidth = col > 5 ? 0.45 : 0.56;
+      const box = roundedBox(stackWidth, 0.34, 0.47, containerPalette[(tier + col) % containerPalette.length]);
+      box.position.set(-1.55 + col * 0.52, -0.4 + tier * 0.34, -0.29 + (col % 2) * 0.58);
       group.add(box);
+
+      const edge = new THREE.LineSegments(
+        new THREE.EdgesGeometry(box.geometry),
+        new THREE.LineBasicMaterial({ color: 0x06110f, transparent: true, opacity: 0.18 })
+      );
+      edge.position.copy(box.position);
+      group.add(edge);
     }
+  }
+
+  const mast = roundedBox(0.06, 1.05, 0.06, colors.gold, 0.36, 0.2);
+  mast.position.set(2.8, 0.18, -0.58);
+  const mastArm = roundedBox(0.82, 0.04, 0.04, colors.gold, 0.36, 0.2);
+  mastArm.position.set(2.46, 0.68, -0.58);
+  group.add(mast, mastArm);
+
+  const wakeMaterial = new THREE.MeshBasicMaterial({ color: 0x9af0d8, transparent: true, opacity: 0.14 });
+  for (let index = 0; index < 3; index += 1) {
+    const wake = new THREE.Mesh(new THREE.RingGeometry(0.55 + index * 0.38, 0.57 + index * 0.38, 64), wakeMaterial);
+    wake.rotation.x = -Math.PI / 2;
+    wake.scale.set(1.9, 0.34, 1);
+    wake.position.set(-3.62 - index * 0.28, -1.52, 0);
+    group.add(wake);
   }
 
   group.position.set(-2.4, 0.45, -0.4);
@@ -362,6 +435,8 @@ const scenarios = {
   },
 };
 
+let simWheelProgress = 0;
+
 function renderScenario(name, delayOverride = null) {
   if (!simulator) return;
   const base = scenarios[name] || scenarios.safe;
@@ -380,13 +455,8 @@ function renderScenario(name, delayOverride = null) {
   });
 }
 
-function updateSimulatorFromScroll() {
+function renderSimulatorProgress(progress) {
   if (!simulator) return;
-  const rect = simulator.getBoundingClientRect();
-  const scrollable = simulator.offsetHeight - window.innerHeight;
-  if (rect.top > 0 || rect.bottom < window.innerHeight || scrollable <= 0) return;
-  const progress = Math.min(1, Math.max(0, -rect.top / scrollable));
-
   if (progress < 0.34) {
     const delay = Math.round(24 + progress * 72);
     renderScenario("safe", delay);
@@ -400,13 +470,33 @@ function updateSimulatorFromScroll() {
 
 if (simulator && delayRange) {
   scenarioButtons.forEach((button) => {
-    button.addEventListener("click", () => renderScenario(button.dataset.scenarioButton));
+    button.addEventListener("click", () => {
+      const selected = button.dataset.scenarioButton;
+      simWheelProgress = selected === "port" ? 0.82 : selected === "rollover" ? 0.5 : 0;
+      renderScenario(selected);
+    });
   });
   delayRange.addEventListener("input", () => {
     const delay = Number(delayRange.value);
     renderScenario(delay >= 72 ? "port" : "safe", delay);
   });
   renderScenario("safe");
+  simulator.addEventListener(
+    "wheel",
+    (event) => {
+      const rect = simulator.getBoundingClientRect();
+      const centered = rect.top < window.innerHeight * 0.22 && rect.bottom > window.innerHeight * 0.78;
+      if (!centered) return;
+      const direction = Math.sign(event.deltaY);
+      const atStart = simWheelProgress <= 0.01 && direction < 0;
+      const atEnd = simWheelProgress >= 0.99 && direction > 0;
+      if (atStart || atEnd) return;
+      event.preventDefault();
+      simWheelProgress = Math.min(1, Math.max(0, simWheelProgress + event.deltaY * 0.0014));
+      renderSimulatorProgress(simWheelProgress);
+    },
+    { passive: false }
+  );
 }
 
 const observer = new IntersectionObserver(
@@ -431,9 +521,7 @@ function updateProgress() {
 }
 
 window.addEventListener("scroll", updateProgress, { passive: true });
-window.addEventListener("scroll", updateSimulatorFromScroll, { passive: true });
 updateProgress();
-updateSimulatorFromScroll();
 
 window.addEventListener("resize", () => {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8));
