@@ -1,0 +1,368 @@
+% !TeX root = Capstone_Outline_Template.tex
+\documentclass{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{url}
+
+\graphicspath{{./}{tests/}}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=black,
+  urlcolor=blue
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Nanyang Technological University}
+\rhead{MSc Blockchain Capstone}
+\cfoot{\thepage}
+
+\fancypagestyle{firstpage}{%
+  \fancyhf{}
+  \lhead{Nanyang Technological University}
+  \rhead{MSc Blockchain Capstone}
+  \cfoot{\thepage}
+}
+
+%%%% PROJECT TITLE
+\title{Stablecoin FX Engine\\
+\Large \emph{A Modular On-Chain Foreign Exchange Settlement and Yield Infrastructure for Kaia}\\
+\large MSc Blockchain Capstone Project}
+
+%%%% STUDENT
+\author{He Zhili\\
+\emph{MSc Blockchain, Nanyang Technological University}\\
+\emph{Junior Software Engineer Intern, Kaia}}
+
+\date{May 12, 2026}
+
+\begin{document}
+\maketitle
+\thispagestyle{firstpage}
+
+\section*{Supervision}
+
+\begin{itemize}
+\renewcommand\labelitemi{--}
+\item University: Nanyang Technological University (NTU)
+\item Programme: MSc Blockchain
+\item Academic/Internship Supervisor: Teoh Teik Toe
+\item Technical Mentor: Qi Xiaodong
+\item Internship Company: Kaia
+\end{itemize}
+
+\begin{abstract}
+This MSc Blockchain capstone project at Nanyang Technological University develops a modular on-chain foreign exchange engine for stablecoin swaps on the Kaia blockchain. The project addresses a practical problem in decentralized finance: how to support foreign-exchange-like stablecoin conversion while managing price integrity, liquidity-provider risk, settlement efficiency, and sustainable protocol revenue. The implemented system combines single-sided stablecoin liquidity pools, a stateless swap router, dual-oracle price validation, utilization-based dynamic fees, platform fee distribution, multi-hop settlement, intent-based netting, and an ERC-4626 yield layer. The first stage of the work focused on requirements analysis, architectural research, and protocol design. The second stage translated the design into Solidity contracts, a Next.js frontend, deployment scripts, and a Foundry test suite. The final implementation contains 125 passing tests across core swaps, oracle aggregation, dynamic fee behavior, platform fee distribution, yield vaults, strategy adapters, settlement, and distributor logic. The resulting prototype demonstrates that a stablecoin FX engine can combine oracle redundancy, adaptive pricing, liquidity-aware settlement, and yield integration while preserving a composable smart contract architecture.
+\end{abstract}
+
+\newpage
+\tableofcontents
+\newpage
+\listoffigures
+\newpage
+\listoftables
+\newpage
+
+\section{Introduction}
+
+Stablecoins are increasingly used as settlement assets, but foreign exchange between region-specific stablecoins remains operationally difficult on-chain. A user who holds a Singapore-dollar stablecoin may need Malaysian ringgit, Indonesian rupiah, or USDT liquidity without relying on centralized exchange custody. At the same time, decentralized swap protocols must protect liquidity providers from stale oracle data, sudden liquidity withdrawals, and one-size-fits-all fee models.
+
+The Stablecoin FX Engine was built to explore this design space. It is a smart-contract system for swapping between stablecoin pools on Kaia, with supporting mechanisms for oracle aggregation, dynamic fees, netted settlement, platform revenue, and yield generation. The project began as an architectural capstone during the internship at Kaia and evolved into an implemented prototype with smart contracts, tests, frontend integration, and deployment configuration.
+
+\subsection{Problem Statement}
+
+The core problem is to design and implement an on-chain FX engine that can:
+
+\begin{enumerate}[leftmargin=*]
+\item quote swaps using reliable external FX rates;
+\item execute stablecoin swaps against single-sided liquidity pools;
+\item avoid overexposing LPs to large trades under a static fee model;
+\item provide a sustainable platform fee mechanism;
+\item support advanced settlement workflows such as multi-hop routing and bilateral netting;
+\item allow idle liquidity to earn yield without breaking the pool interface used by the swap engine.
+\end{enumerate}
+
+\subsection{Project Scope}
+
+The scope of this report covers the capstone work documented in two internship journals and the current repository implementation. Journal 1 focused on requirement gathering, architecture diagrams, AMM mechanism research, and the initial oracle risk model. Journal 2 focused on implementation: Orakl and Pyth oracle integration, dynamic fees, platform fee distribution, Kairos testnet deployment, and Foundry tests.
+
+\section{Background and Related Work}
+
+The project is situated at the intersection of automated market makers, oracle-based pricing, tokenized vaults, and decentralized settlement.
+
+Stablecoin AMMs such as Curve's StableSwap show that stable assets require pricing models different from volatile-token constant-product pools \cite{curve-stableswap}. Uniswap v3 demonstrates that liquidity concentration and fee-tier design can materially affect capital efficiency and LP risk \cite{uniswap-v3}. This capstone adopts a different model: each pool holds one stablecoin, while cross-currency prices are calculated from oracle-provided USD references rather than from a two-asset reserve curve.
+
+Oracle reliability is central to the design. Decentralized oracle networks such as Chainlink-style architectures establish the need for robust off-chain data delivery and manipulation resistance \cite{chainlink-whitepaper}. In this project, Orakl Network is used as the primary push oracle for Kaia, while Pyth Network provides pull-based price updates and fallback validation \cite{orakl-docs,pyth-docs}. The implementation normalizes price direction and decimals so that pools can expose a unified price interface.
+
+For yield integration, the project uses the ERC-4626 tokenized vault standard as the conceptual basis for yield-enabled pools \cite{eip4626}. This allows liquidity-provider shares to remain composable while the vault deploys idle capital into strategy adapters. OpenZeppelin contracts provide audited foundations for ERC-20, ERC-4626, ownership, pausing, and reentrancy protection \cite{openzeppelin-contracts}.
+
+\section{Requirements and Objectives}
+
+The final report guideline requires a complete capstone narrative: project motivation, objectives, methodology, results, discussion, conclusion, references, and appendices. Based on that structure, the objectives of this project are divided into technical and professional objectives.
+
+\subsection{Technical Objectives}
+
+\begin{enumerate}[leftmargin=*]
+\item Implement a stablecoin FX router that can quote and execute swaps across registered pools.
+\item Build single-sided liquidity pools with LP share accounting, fee accrual, and release-only access control for the engine.
+\item Replace the initial static swap fee with a utilization-based dynamic fee model.
+\item Integrate dual price sources through an oracle aggregator with fallback and cross-validation.
+\item Distribute swap fees between LPs, platform treasury, and optional protocol-level distributor contracts.
+\item Extend direct swaps with multi-hop routing and intent-based net settlement.
+\item Add an ERC-4626 yield layer so idle liquidity can be deployed to Aave, Pendle, or Morpho-style strategy adapters.
+\item Validate the contracts with focused Foundry tests.
+\end{enumerate}
+
+\subsection{Professional Objectives}
+
+The internship journals also define professional goals: improving requirements analysis, communicating complex blockchain designs through technical documentation, gaining hands-on enterprise development experience, and moving from architecture to production-style smart contract implementation.
+
+\section{System Design}
+
+\subsection{High-Level Architecture}
+
+The implemented architecture is modular. The \texttt{FXEngine} is a stateless router that maps each stablecoin token to an \texttt{IFXPool}. \texttt{FXPool} holds single-sided liquidity for one stablecoin and exposes price, balance, LP token, and release functions. \texttt{OracleAggregator} supplies a normalized USD price. \texttt{SettlementEngine} extends the router with multi-hop and intent-netting workflows. \texttt{YieldVault} implements an ERC-4626-compatible pool that can replace a normal \texttt{FXPool}. \texttt{YieldDistributor} receives protocol and harvest fees and distributes them to staked LP shares.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{fx-engine-architecture.png}
+\caption{High-level FX Engine model architecture showing stablecoin reserve management, liquidity pools, LP position management, external DeFi yield protocols, and aggregated oracle inputs.}
+\label{fig:fx-engine-architecture}
+\end{figure}
+
+Figure~\ref{fig:fx-engine-architecture} summarizes the intended system boundary. The on-chain FX engine coordinates token reserves, pool management, swap pricing, and LP positions, while external components such as cryptographic Merkle attestations, proof-of-reserve feeds, Pyth/Chainlink-style aggregated oracles, and DeFi yield protocols provide supporting data and capital efficiency.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{p{0.25\linewidth} p{0.62\linewidth}}
+\toprule
+\textbf{Component} & \textbf{Responsibility} \\
+\midrule
+\texttt{FXEngine} & Registers pools, computes oracle-based cross rates, applies dynamic fees, executes swaps, and routes protocol fees. \\
+\texttt{FXPool} & Holds one stablecoin, mints LP shares, releases output tokens to swaps, computes utilization-based fees, and distributes platform fees. \\
+\texttt{OracleAggregator} & Combines Orakl and Pyth prices with fallback, deviation checks, staleness handling, and price normalization. \\
+\texttt{SettlementEngine} & Adds multi-hop quotes/swaps and intent-based bilateral netting for settlement efficiency. \\
+\texttt{YieldVault} & Provides ERC-4626 share accounting while preserving the \texttt{IFXPool} interface for yield-enabled liquidity. \\
+\texttt{YieldDistributor} & Distributes protocol swap fees, harvest fees, and optional bonus rewards to staked LP/vault shares. \\
+\bottomrule
+\end{tabular}
+\caption{Core system components}
+\end{table}
+
+\subsection{Swap Flow}
+
+A direct swap begins when a user approves the engine to spend \texttt{tokenIn}. The engine reads the input and output pool prices, computes the gross output as:
+
+\[
+\text{grossOut} = \frac{\text{amountIn} \times \text{priceIn}}{\text{priceOut}}
+\]
+
+It then asks the output pool for the effective fee rate. The final output is:
+
+\[
+\text{amountOut} = \text{grossOut} - \frac{\text{grossOut} \times \text{effectiveFeeRate}}{10000}
+\]
+
+The input token is transferred into the input pool, while the output pool releases the net output to the recipient. Platform and protocol fee portions are released separately when configured.
+
+\subsection{Dual-Oracle Design}
+
+The oracle design was one of the main areas of capstone research. A single oracle creates a direct failure point: stale or manipulated data can cause incorrect swap execution. The implemented \texttt{OracleAggregator} therefore uses Orakl as the primary push-based feed and Pyth as a pull-based fallback. When both are available and cross-validation is enabled, the contract checks whether the two prices deviate beyond a configurable basis-point threshold. If Orakl fails, Pyth can serve as fallback; if both fail, the swap reverts.
+
+The implementation also handles quote-direction mismatches. For example, a Pyth feed may provide \texttt{USD/MYR}, while the pool expects \texttt{MYR/USD}. The aggregator can invert Pyth values to preserve a common \texttt{TOKEN/USD} convention.
+
+\subsection{Dynamic Fee Model}
+
+The project replaced a static 0.30\% fee with a utilization-based model:
+
+\[
+\text{feeRate} = \text{baseFee} + \left(\frac{\text{grossOut}}{\text{poolBalance}} \times \text{utilizationFactor}\right)
+\]
+
+The fee is capped by \texttt{maxDynamicFeeRate}. In the tested configuration, small trades pay near the 0.10\% base fee, while large trades can scale toward a 3.00\% cap. This design protects LPs when a trade consumes a large share of pool liquidity and keeps small-user swaps competitive.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{p{0.25\linewidth} p{0.25\linewidth} p{0.35\linewidth}}
+\toprule
+\textbf{Parameter} & \textbf{Example Value} & \textbf{Purpose} \\
+\midrule
+Base fee & 10 bps & Minimum fee for small trades. \\
+Utilization factor & 2000 & Scales the fee with trade size relative to pool liquidity. \\
+Maximum dynamic fee & 300 bps & Caps the fee to avoid unbounded charges. \\
+Platform fee share & 3000 bps & Sends 30\% of collected swap fees to the platform treasury. \\
+\bottomrule
+\end{tabular}
+\caption{Dynamic fee and platform fee parameters}
+\end{table}
+
+\section{Methodology}
+
+\subsection{Phase 1: Requirements and Architecture}
+
+The first phase focused on understanding the product requirements and translating them into a feasible protocol architecture. I reviewed technical materials, participated in stakeholder discussions, and prepared a technical specification. Key activities included researching AMM designs, single-sided liquidity, synthetic asset issuance, oracle latency risk, and virtual reserve modeling.
+
+The main output of this phase was an architectural blueprint for the FX engine, including component boundaries, data flow, and the initial risk model around oracle staleness and arbitrage.
+
+\subsection{Phase 2: Smart Contract Implementation}
+
+The second phase implemented the core protocol in Solidity. The work included:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{OracleAggregator} for Orakl/Pyth fallback and cross-validation;
+\item \texttt{FXPool} dynamic fees and platform fee release;
+\item \texttt{FXEngine} fee-aware swap execution;
+\item \texttt{SettlementEngine} multi-hop routing and netted batch settlement;
+\item \texttt{YieldVault} and strategy adapters for yield-enabled pools;
+\item \texttt{YieldDistributor} for fee and bonus reward distribution.
+\end{itemize}
+
+The implementation follows conservative Solidity patterns: \texttt{Ownable} admin control, \texttt{Pausable} emergency stops, \texttt{ReentrancyGuard} on external state-changing entry points, safe ERC-20 transfers, and two-step engine updates for pool access.
+
+\subsection{Phase 3: Frontend and Deployment Integration}
+
+The frontend uses Next.js, wagmi, viem, and React components to support wallet connection, token selection, swap quote display, allowance checks, approval, and swap execution. The swap UI reads the effective dynamic fee from the output pool so users can see the actual fee for the current trade size.
+
+Deployment scripts configure tokens, pools, oracle aggregators, and engine registration for the Kaia Kairos testnet. During testing, one practical challenge was that Orakl testnet mock prices and Pyth live prices sometimes diverged beyond the cross-validation threshold. For development swaps, the frontend used the direct \texttt{swap()} path while preserving the aggregator security model in the contracts.
+
+\section{Results}
+
+\subsection{Implemented Features}
+
+\begin{longtable}{p{0.28\linewidth} p{0.60\linewidth}}
+\toprule
+\textbf{Feature} & \textbf{Result} \\
+\midrule
+\endhead
+Oracle aggregation & Implemented Orakl primary feed, Pyth fallback, price normalization, staleness handling, and configurable deviation checks. \\
+Dynamic fees & Implemented utilization-based fee scaling in \texttt{FXPool}, replacing the static 0.30\% model. \\
+Platform fee split & Implemented configurable platform treasury and 70/30 LP/platform fee split behavior. \\
+Core swaps & Implemented oracle-priced swaps across MYR, SGD, IDRX, and USDT-style pools. \\
+Multi-hop routing & Implemented path-based swaps up to a bounded path length. \\
+Intent netting & Implemented escrowed swap intents and batch settlement that nets opposing flows. \\
+Yield layer & Implemented ERC-4626 vaults, coverage ratio management, strategy adapters, and harvest fee logic. \\
+Distributor & Implemented staking, fee notifications, buffered fees, coverage-weighted bonus allocation, and emergency withdrawal. \\
+Frontend & Implemented token selection, quote display, balance/allowance handling, dynamic fee display, approval, and swap execution. \\
+\bottomrule
+\caption{Implemented capstone outcomes}
+\end{longtable}
+
+\subsection{Validation}
+
+The repository was validated with Foundry on May 12, 2026. The command \texttt{forge test} completed successfully with 125 passing tests and 0 failures across five test suites.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{p{0.35\linewidth} r p{0.38\linewidth}}
+\toprule
+\textbf{Suite} & \textbf{Tests} & \textbf{Coverage Focus} \\
+\midrule
+\texttt{FXEngine.t.sol} & 40 & Core swaps, dynamic fees, platform fees, oracle aggregation, LP operations. \\
+\texttt{YieldVault.t.sol} & 23 & ERC-4626 behavior, strategy recall, coverage ratio, vault-pool compatibility. \\
+\texttt{SettlementEngine.t.sol} & 22 & Multi-hop routes, swap intents, cancellation, bilateral netting. \\
+\texttt{StrategyAdapters.t.sol} & 18 & Pendle, Morpho, strategy hot-swapping, harvest flows. \\
+\texttt{YieldDistributor.t.sol} & 22 & Fee distribution, staking, bonus rewards, coverage weighting. \\
+\midrule
+\textbf{Total} & \textbf{125} & \textbf{All passing} \\
+\bottomrule
+\end{tabular}
+\caption{Foundry validation summary}
+\end{table}
+
+The test run produced only minor Solidity compiler warnings in test files, such as unused local variables and a function that could be marked \texttt{view}. These warnings do not affect the successful validation result.
+
+\section{Discussion}
+
+\subsection{What Worked Well}
+
+The modular architecture made it possible to grow the project without rewriting the core router. The same \texttt{IFXPool} interface can be implemented by a simple pool or by an ERC-4626 yield vault. The oracle aggregator also isolates price-source complexity from swap logic, which keeps \texttt{FXEngine} easier to audit.
+
+The dynamic fee model is a practical improvement over a static swap fee. It directly links cost to liquidity impact, which better aligns trader behavior with LP protection. The platform fee mechanism also gives the protocol a clear revenue path without removing the LP incentive, because the LP portion of the fee remains in the output pool.
+
+\subsection{Challenges}
+
+The first major challenge was oracle latency and divergence. Oracle-based FX depends on data freshness, and testnet environments can behave differently from production feeds. The cross-validation design improves safety, but it also introduces a configuration challenge: if the threshold is too strict, swaps may revert due to harmless feed mismatch; if it is too loose, manipulation risk increases.
+
+The second challenge was gas-aware fee computation. Solidity does not support floating-point arithmetic, so the fee model had to be expressed in basis points with integer operations. This required careful ordering of multiplication and division to avoid precision loss.
+
+The third challenge was end-to-end synchronization between off-chain data and on-chain transactions. Pyth's pull model requires price update data to be fetched off-chain and submitted with a transaction. This pattern is powerful, but it increases frontend complexity compared with a purely push-based oracle.
+
+\subsection{Limitations}
+
+The prototype has several limitations. First, the oracle configuration needs production calibration before mainnet use. Second, the strategy adapters are tested through mocks and interfaces; production deployment would require deeper integration testing against real Aave, Pendle, and Morpho deployments on the target chain. Third, the system has not yet undergone a formal external security audit. Finally, the report does not claim economic optimality of the dynamic fee curve; it demonstrates a working and testable mechanism that can be tuned through governance parameters.
+
+\section{Conclusion and Future Work}
+
+This capstone successfully moved from research and architectural planning into a working stablecoin FX prototype. The implemented system supports direct swaps, dual-oracle pricing, utilization-based dynamic fees, platform revenue distribution, multi-hop settlement, intent netting, yield-enabled pools, and LP reward distribution. The final repository validation shows 125 passing Foundry tests, which gives confidence that the core mechanics are implemented consistently.
+
+The most important personal learning outcome was the transition from theoretical protocol design to production-style smart contract engineering. The project required tradeoffs between mathematical design, gas efficiency, testnet constraints, frontend usability, and security posture.
+
+Future work should focus on:
+
+\begin{enumerate}[leftmargin=*]
+\item running automated and manual security review with tools such as Slither and Mythril;
+\item calibrating oracle deviation thresholds for production Kaia feeds;
+\item benchmarking gas costs for swap, multi-hop, and netted settlement flows;
+\item performing integration tests with live yield protocols;
+\item adding richer monitoring for oracle status, pool utilization, fee rates, and treasury flows;
+\item preparing a mainnet deployment checklist covering admin keys, treasury addresses, emergency operations, and parameter governance.
+\end{enumerate}
+
+\appendix
+
+\section{Source Files Reviewed}
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{docs/Final Report Guideline (AY2025).pdf}
+\item \texttt{docs/HeZhili\_Capstone\_Journal\_1.pdf}
+\item \texttt{docs/HeZhili\_Capstone\_Journal\_2.md}
+\item \texttt{docs/latex-template.md}
+\item \texttt{README.md}
+\item \texttt{src/FXEngine.sol}
+\item \texttt{src/pools/FXPool.sol}
+\item \texttt{src/oracles/OracleAggregator.sol}
+\item \texttt{src/settlement/SettlementEngine.sol}
+\item \texttt{src/vaults/YieldVault.sol}
+\item \texttt{src/distribution/YieldDistributor.sol}
+\item \texttt{app/src/components/SwapCard.tsx}
+\end{itemize}
+
+\section{Guideline Mapping}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{p{0.30\linewidth} p{0.55\linewidth}}
+\toprule
+\textbf{Guideline Item} & \textbf{Where Addressed} \\
+\midrule
+Title page & Report title, author, date, supervision block. \\
+Abstract & Abstract section before table of contents. \\
+Table of contents & Generated with \texttt{\textbackslash tableofcontents}. \\
+Introduction & Introduction, problem statement, scope. \\
+Literature review & Background and Related Work. \\
+Methodology & Requirements, architecture, implementation, frontend/deployment. \\
+Results & Implemented features and validation tables. \\
+Discussion & What worked, challenges, and limitations. \\
+Conclusion & Conclusion and future work. \\
+References & BibTeX bibliography. \\
+Appendices & Source review list and guideline mapping. \\
+\bottomrule
+\end{tabular}
+\caption{Mapping to final report guideline}
+\end{table}
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
