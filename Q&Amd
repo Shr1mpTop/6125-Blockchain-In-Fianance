@@ -1,0 +1,44 @@
+You mentioned oracles bring IoT data on-chain. What happens if the oracle fails or provides incorrect data? Doesn't that reintroduce trust?
+
+You have a DAO arbitration clause, but courts don't recognize DAO rulings in many jurisdictions. How is this enforceable against a non‑compliant party?
+
+Why would a large logistics company or bank agree to pre‑fund payment? They've been operating on credit terms for decades. What's the incentive to change?
+
+有，第一题肯定和你负责部分强相关；第二题可能半相关；第三题主要偏 business / adoption，但你也可以接一点。
+
+你负责回答的重点
+
+Oracle failure / incorrect data / trust issue
+这是你负责的 Smart Contract / dApp Design 里的核心风险。你可以这样答：
+中文：
+是的，oracle 确实会重新引入一定的信任问题，因为智能合约本身不能直接知道现实世界发生了什么。所以 OceanNode 不会假设单一 oracle 永远正确，而是采用多源验证：AIS 数据、carrier API、port / terminal data 互相交叉验证。只有当多个独立数据源一致时，Policy Manager 才确认 trigger。对于异常数据，可以设置 dispute window、manual review fallback、emergency pause，以及 oracle reputation / slashing 机制。换句话说，我们不是完全消除 trust，而是把 trust 从人工理赔员转移到更透明、可审计、可交叉验证的数据层。
+
+English:
+Yes, oracles do reintroduce some trust, because smart contracts cannot observe the physical world directly. OceanNode addresses this by not relying on a single oracle. It cross-checks AIS data, carrier APIs, and port or terminal records before confirming a trigger. For abnormal cases, the system can include a dispute window, manual review fallback, emergency pause, and oracle reputation or slashing mechanisms. So we are not eliminating trust completely; we are reducing and relocating it from subjective claims assessment to a more transparent and auditable data layer.
+
+DAO arbitration enforceability
+这题不完全是你的小节，但如果问到你，可以把它转给 regulation / viability 部分，同时给一个稳妥回答：
+中文：
+DAO ruling 本身在很多司法辖区可能没有直接法律强制力，所以我们不会把 DAO 当成唯一法律执行机制。更现实的设计是 hybrid model：正式保险合同由 licensed insurer 或 regulated entity 签发，DAO 只负责 protocol governance，比如调整 premium rate、risk pool scope、oracle selection 和参数更新。争议解决方面，链上 arbitration 可以作为第一层技术性判断，但最终 enforceability 需要依赖传统合同、保险条款和适用法律。
+
+English:
+DAO rulings may not be directly enforceable in many jurisdictions, so OceanNode should not rely on DAO arbitration as the only legal enforcement mechanism. A more realistic model is hybrid: policies are legally issued by a licensed insurer or regulated entity, while the DAO handles protocol governance, such as premium parameters, risk pool scope, oracle selection, and upgrades. On-chain arbitration can serve as a first technical review layer, but legal enforceability still comes from traditional contracts, policy wording, and applicable law.
+
+Why pre-fund payment? Incentive for logistics company or bank
+这题更像商业模式和 adoption，不是你主责，但你可以这样接：
+中文：
+大型物流公司或银行不一定会一开始就完全改变信用模式。OceanNode 更适合作为补充工具，而不是直接替代传统 credit terms。它的激励在于降低小额、高频、争议多的 delay claims 处理成本，并改善 SME 的现金流稳定性。对银行来说，这可以降低 SME trade finance 的 default risk；对物流公司来说，可以减少客户纠纷、提升服务差异化；对 LP 或资本提供方来说，则是获得和真实贸易风险挂钩的 premium yield。
+
+English:
+Large logistics firms or banks may not fully replace credit terms immediately. OceanNode is better positioned as a complementary tool rather than a complete replacement. The incentive is to reduce the cost of small, frequent, and disputed delay claims, while improving SME cash-flow stability. For banks, this can reduce default risk in SME trade finance. For logistics companies, it can reduce customer disputes and create differentiated service offerings. For LPs or capital providers, it creates premium yield linked to real-world trade risk.
+
+建议今晚你主动认领
+你可以负责回答 Question 1，因为它直接对应你讲的 oracle verification 和 smart contract trigger。
+
+如果老师追问 capital pool 或 solvency，你也可以补一句：
+
+中文：
+为了避免 oracle 错误导致资金池被错误赔付，Risk Pool 不会无限暴露。我们会设置 exposure cap、per-route capacity limit、dispute window 和 emergency pause，所以 oracle risk 和 pool solvency 是一起管理的。
+
+English:
+To prevent incorrect oracle data from draining the pool, the Risk Pool should not have unlimited exposure. OceanNode can use exposure caps, per-route capacity limits, dispute windows, and emergency pause functions, so oracle risk and pool solvency are managed together.
